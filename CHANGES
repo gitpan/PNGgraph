@@ -1,14 +1,12 @@
-Sun September 19 1999
+Mon September 20 1999  by sbonds@agora.rdrop.com [version 1.11]
+- Changed version number internally.  No substantive changes
 
-- The first version of PNGGraph was made by simply replacing 
-  all [Gg][Ii][Ff]  in the source code & filenames of GIFgraph 1.10
-  to [Pp][Nn][Gg].
-- pie.pm is a little bit improved (labels).   
-
-###################################################################
-
- From GIFGraph 1.10:
-
+Tue August 31 1999  by sbonds@agora.rdrop.com [version 1.10]
+- Please contact me rather than the original author for problems unless
+  you are convinced that the problems are not a result of the port to PNG
+- Converted GIFgraph-1.10 to PNGgraph-1.10 so it works properly with GD-1.20
+- UNISYS has been increasingly defensive of the LZW patent used in GIF
+  compression, which necessitates these kinds of fixes.  
 
 Tue August 25 1998
 
@@ -74,13 +72,13 @@ Fri Jan  9 1998
 Tue Dec 23 1997
 
 - Changed PERL=perl5 to PERL=perl in samples/Makefile (D'OH!)
-- Added read_rgb to GIFgraph::colour to allow definition of own colours
+- Added read_rgb to PNGgraph::colour to allow definition of own colours
 - Added t/colour.t
 - Removed a lot of unnecessary quotes all over the place
 
 Mon Dec 22 1997
 
-- Center graph titles on axes, not on gif
+- Center graph titles on axes, not on png
 - Added line types
 - Moved initialise() to each module with $self->SUPER inheritance
 - Added check for duplicate GD::Image object initialisation

@@ -1,14 +1,14 @@
 #==========================================================================
-#              Copyright (c) 1999 Dmitry Ovsyanko
+#			   Copyright (c) 1995-1998 Martien Verbruggen
 #--------------------------------------------------------------------------
 #
-#   Name:
-#       PNGgraph::bars.pm
+#	Name:
+#		PNGgraph::bars.pm
 #
 # $Id: bars.pm,v 2.5 1998/08/25 04:22:15 mgjv Exp $
 #
 #==========================================================================
-
+ 
 package PNGgraph::bars;
 
 use strict qw(vars refs subs);
@@ -19,158 +19,158 @@ use PNGgraph::utils qw(:all);
 @PNGgraph::bars::ISA = qw( PNGgraph::axestype );
 
 my %Defaults = (
-
-    # Spacing between the bars
-    bar_spacing     => 0,
+	
+	# Spacing between the bars
+	bar_spacing 	=> 0,
 );
 
 {
-    sub initialise()
-    {
-        my $self = shift;
+	sub initialise()
+	{
+		my $self = shift;
 
-        $self->SUPER::initialise();
+		$self->SUPER::initialise();
 
-        my $key;
-        foreach $key (keys %Defaults)
-        {
-            $self->set( $key => $Defaults{$key} );
-        }
-    }
+		my $key;
+		foreach $key (keys %Defaults)
+		{
+			$self->set( $key => $Defaults{$key} );
+		}
+	}
+	
+	# PRIVATE
+	sub draw_data{
 
-    # PRIVATE
-    sub draw_data{
+		my $s = shift;
+		my $g = shift;
+		my $d = shift;
 
-        my $s = shift;
-        my $g = shift;
-        my $d = shift;
+		if ( $s->{overwrite} ) 
+		{
+			$s->draw_data_overwrite($g, $d);
+		} 
+		else 
+		{
+			$s->SUPER::draw_data($g, $d);
+		}
 
-        if ( $s->{overwrite} )
-        {
-            $s->draw_data_overwrite($g, $d);
-        }
-        else
-        {
-            $s->SUPER::draw_data($g, $d);
-        }
+		# redraw the 'zero' axis
+		$g->line( 
+			$s->{left}, $s->{zeropoint}, 
+			$s->{right}, $s->{zeropoint}, 
+			$s->{fgci} );
+	}
+ 
+	# Draws the bars on top of each other
+ 
+	sub draw_data_overwrite {
 
-        # redraw the 'zero' axis
-        $g->line(
-            $s->{left}, $s->{zeropoint},
-            $s->{right}, $s->{zeropoint},
-            $s->{fgci} );
-    }
+		my $s = shift;
+		my $g = shift;
+		my $d = shift;
+		my $bar_s = _round($s->{bar_spacing}/2);
 
-    # Draws the bars on top of each other
+		my $zero = $s->{zeropoint};
 
-    sub draw_data_overwrite {
+		my $i;
+		for $i (0 .. $s->{numpoints}) 
+		{
+			my $bottom = $zero;
+			my ($xp, $t);
 
-        my $s = shift;
-        my $g = shift;
-        my $d = shift;
-        my $bar_s = _round($s->{bar_spacing}/2);
+			my $j;
+			for $j (1 .. $s->{numsets}) 
+			{
+				next unless (defined $d->[$j][$i]);
 
-        my $zero = $s->{zeropoint};
+				# get data colour
+				my $dsci = $s->set_clr( $g, $s->pick_data_clr($j) );
 
-        my $i;
-        for $i (0 .. $s->{numpoints})
-        {
-            my $bottom = $zero;
-            my ($xp, $t);
+				# get coordinates of top and center of bar
+				($xp, $t) = $s->val_to_pixel($i + 1, $d->[$j][$i], $j);
 
-            my $j;
-            for $j (1 .. $s->{numsets})
-            {
-                next unless (defined $d->[$j][$i]);
+				# calculate left and right of bar
+				my $l = $xp - _round($s->{x_step}/2) + $bar_s;
+				my $r = $xp + _round($s->{x_step}/2) - $bar_s;
 
-                # get data colour
-                my $dsci = $s->set_clr( $g, $s->pick_data_clr($j) );
+				# calculate new top
+				$t -= ($zero - $bottom) if ($s->{overwrite} == 2);
 
-                # get coordinates of top and center of bar
-                ($xp, $t) = $s->val_to_pixel($i + 1, $d->[$j][$i], $j);
+				# draw the bar
+				if ($d->[$j][$i] >= 0)
+				{
+					# positive value
+					$g->filledRectangle( $l, $t, $r, $bottom, $dsci );
+					$g->rectangle( $l, $t, $r, $bottom, $s->{acci} );
+				}
+				else
+				{
+					# negative value
+					$g->filledRectangle( $l, $bottom, $r, $t, $dsci );
+					$g->rectangle( $l, $bottom, $r, $t, $s->{acci} );
+				}
 
-                # calculate left and right of bar
-                my $l = $xp - _round($s->{x_step}/2) + $bar_s;
-                my $r = $xp + _round($s->{x_step}/2) - $bar_s;
+				# reset $bottom to the top
+				$bottom = $t if ($s->{overwrite} == 2);
+			}
+		}
+	 }
 
-                # calculate new top
-                $t -= ($zero - $bottom) if ($s->{overwrite} == 2);
+	sub draw_data_set($$$)
+	{
+		my $s = shift;
+		my $g = shift;
+		my $d = shift;
+		my $ds = shift;
+		my $bar_s = _round($s->{bar_spacing}/2);
 
-                # draw the bar
-                if ($d->[$j][$i] >= 0)
-                {
-                    # positive value
-                    $g->filledRectangle( $l, $t, $r, $bottom, $dsci );
-                    $g->rectangle( $l, $t, $r, $bottom, $s->{acci} );
-                }
-                else
-                {
-                    # negative value
-                    $g->filledRectangle( $l, $bottom, $r, $t, $dsci );
-                    $g->rectangle( $l, $bottom, $r, $t, $s->{acci} );
-                }
+		# Pick a data colour
+		my $dsci = $s->set_clr( $g, $s->pick_data_clr($ds) );
 
-                # reset $bottom to the top
-                $bottom = $t if ($s->{overwrite} == 2);
-            }
-        }
-     }
+		my $i;
+		for $i (0 .. $s->{numpoints}) 
+		{
+			next unless (defined $d->[$i]);
 
-    sub draw_data_set($$$)
-    {
-        my $s = shift;
-        my $g = shift;
-        my $d = shift;
-        my $ds = shift;
-        my $bar_s = _round($s->{bar_spacing}/2);
+			# get coordinates of top and center of bar
+			my ($xp, $t) = $s->val_to_pixel($i + 1, $d->[$i], $ds);
 
-        # Pick a data colour
-        my $dsci = $s->set_clr( $g, $s->pick_data_clr($ds) );
+			# calculate left and right of bar
+			my ($l, $r);
 
-        my $i;
-        for $i (0 .. $s->{numpoints})
-        {
-            next unless (defined $d->[$i]);
+			if ($s->{mixed})
+			{
+				$l = $xp - _round($s->{x_step}/2) + $bar_s;
+				$r = $xp + _round($s->{x_step}/2) - $bar_s;
+			}
+			else
+			{
+				$l = $xp 
+					- _round($s->{x_step}/2)
+					+ _round(($ds - 1) * $s->{x_step}/$s->{numsets})
+					+ $bar_s;
+				$r = $xp 
+					- _round($s->{x_step}/2)
+					+ _round($ds * $s->{x_step}/$s->{numsets})
+					- $bar_s;
+			}
 
-            # get coordinates of top and center of bar
-            my ($xp, $t) = $s->val_to_pixel($i + 1, $d->[$i], $ds);
-
-            # calculate left and right of bar
-            my ($l, $r);
-
-            if ($s->{mixed})
-            {
-                $l = $xp - _round($s->{x_step}/2) + $bar_s;
-                $r = $xp + _round($s->{x_step}/2) - $bar_s;
-            }
-            else
-            {
-                $l = $xp
-                    - _round($s->{x_step}/2)
-                    + _round(($ds - 1) * $s->{x_step}/$s->{numsets})
-                    + $bar_s;
-                $r = $xp
-                    - _round($s->{x_step}/2)
-                    + _round($ds * $s->{x_step}/$s->{numsets})
-                    - $bar_s;
-            }
-
-            # draw the bar
-            if ($d->[$i] >= 0)
-            {
-                # positive value
-                $g->filledRectangle( $l, $t, $r, $s->{zeropoint}, $dsci );
-                $g->rectangle( $l, $t, $r, $s->{zeropoint}, $s->{acci} );
-            }
-            else
-            {
-                # negative value
-                $g->filledRectangle( $l, $s->{zeropoint}, $r, $t, $dsci );
-                $g->rectangle( $l, $s->{zeropoint}, $r, $t, $s->{acci} );
-            }
-        }
-    }
-
+			# draw the bar
+			if ($d->[$i] >= 0)
+			{
+				# positive value
+				$g->filledRectangle( $l, $t, $r, $s->{zeropoint}, $dsci );
+				$g->rectangle( $l, $t, $r, $s->{zeropoint}, $s->{acci} );
+			}
+			else
+			{
+				# negative value
+				$g->filledRectangle( $l, $s->{zeropoint}, $r, $t, $dsci );
+				$g->rectangle( $l, $s->{zeropoint}, $r, $t, $s->{acci} );
+			}
+		}
+	}
+ 
 } # End of package PNGgraph::bars
 
 1;

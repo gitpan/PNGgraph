@@ -1,18 +1,19 @@
 #==========================================================================
-#              Copyright (c) 1999 Dmitry Ovsyanko
+#              Copyright (c) 1995-1998 Martien Verbruggen
 #--------------------------------------------------------------------------
 #
-#   Name:
-#       PNGgraph::colour.pm
+#	Name:
+#		PNGgraph::colour.pm
 #
-#   Description:
-#       Package of colour manipulation routines, to be used
-#       with PNGgraph.
+#	Description:
+#		Package of colour manipulation routines, to be used 
+#		with PNGgraph.
 #
+# $Id: colour.pm,v 2.4 1998/08/18 06:41:05 mgjv Exp $
 #
 #==========================================================================
 
-
+ 
 package PNGgraph::colour;
 
 use vars qw( @EXPORT_OK %EXPORT_TAGS );
@@ -23,169 +24,169 @@ require Exporter;
 
 $PNGgraph::colour::prog_name    = 'PNGgraph::colour.pm';
 $PNGgraph::colour::prog_rcs_rev = '$Revision: 2.4 $';
-$PNGgraph::colour::prog_version =
-    ($PNGgraph::colour::prog_rcs_rev =~ /\s+(\d*\.\d*)/) ? $1 : "0.0";
+$PNGgraph::colour::prog_version = 
+	($PNGgraph::colour::prog_rcs_rev =~ /\s+(\d*\.\d*)/) ? $1 : "0.0";
 
-@EXPORT_OK = qw(
-    _rgb _luminance _hue
-    colour_list sorted_colour_list
-    read_rgb
+@EXPORT_OK = qw( 
+	_rgb _luminance _hue 
+	colour_list sorted_colour_list
+	read_rgb
 );
-%EXPORT_TAGS = (
-        colours => [qw( _rgb _luminance _hue )],
-        lists => [qw( colour_list sorted_colour_list )],
-        files => [qw( read_rgb )],
-    );
+%EXPORT_TAGS = ( 
+		colours => [qw( _rgb _luminance _hue )],
+		lists => [qw( colour_list sorted_colour_list )],
+		files => [qw( read_rgb )],
+	);
 
 {
     my %RGB = (
-        white   => [0xFF,0xFF,0xFF],
-        lgray   => [0xBF,0xBF,0xBF],
-        gray    => [0x7F,0x7F,0x7F],
-        dgray   => [0x3F,0x3F,0x3F],
-        black   => [0x00,0x00,0x00],
-        lblue   => [0x00,0x00,0xFF],
-        blue    => [0x00,0x00,0xBF],
-        dblue   => [0x00,0x00,0x7F],
-        gold    => [0xFF,0xD7,0x00],
-        lyellow => [0xFF,0xFF,0x00],
-        yellow  => [0xBF,0xBF,0x00],
-        dyellow => [0x7F,0x7F,0x00],
-        lgreen  => [0x00,0xFF,0x00],
-        green   => [0x00,0xBF,0x00],
-        dgreen  => [0x00,0x7F,0x00],
-        lred    => [0xFF,0x00,0x00],
-        red     => [0xBF,0x00,0x00],
-        dred    => [0x7F,0x00,0x00],
-        lpurple => [0xFF,0x00,0xFF],
-        purple  => [0xBF,0x00,0xBF],
-        dpurple => [0x7F,0x00,0x7F],
-        lorange => [0xFF,0xB7,0x00],
-        orange  => [0xFF,0x7F,0x00],
-        pink    => [0xFF,0xB7,0xC1],
-        dpink   => [0xFF,0x69,0xB4],
-        marine  => [0x7F,0x7F,0xFF],
-        cyan    => [0x00,0xFF,0xFF],
-        lbrown  => [0xD2,0xB4,0x8C],
-        dbrown  => [0xA5,0x2A,0x2A],
+        white	=> [0xFF,0xFF,0xFF], 
+        lgray	=> [0xBF,0xBF,0xBF], 
+		gray	=> [0x7F,0x7F,0x7F],
+		dgray	=> [0x3F,0x3F,0x3F],
+		black	=> [0x00,0x00,0x00],
+        lblue	=> [0x00,0x00,0xFF], 
+		blue	=> [0x00,0x00,0xBF],
+        dblue	=> [0x00,0x00,0x7F], 
+		gold	=> [0xFF,0xD7,0x00],
+        lyellow	=> [0xFF,0xFF,0x00], 
+        yellow	=> [0xBF,0xBF,0x00], 
+		dyellow	=> [0x7F,0x7F,0x00],
+        lgreen	=> [0x00,0xFF,0x00], 
+        green	=> [0x00,0xBF,0x00], 
+		dgreen	=> [0x00,0x7F,0x00],
+        lred	=> [0xFF,0x00,0x00], 
+		red		=> [0xBF,0x00,0x00],
+		dred	=> [0x7F,0x00,0x00],
+        lpurple	=> [0xFF,0x00,0xFF], 
+        purple	=> [0xBF,0x00,0xBF],
+		dpurple	=> [0x7F,0x00,0x7F],
+        lorange	=> [0xFF,0xB7,0x00], 
+		orange	=> [0xFF,0x7F,0x00],
+        pink	=> [0xFF,0xB7,0xC1], 
+		dpink	=> [0xFF,0x69,0xB4],
+        marine	=> [0x7F,0x7F,0xFF], 
+		cyan	=> [0x00,0xFF,0xFF],
+        lbrown	=> [0xD2,0xB4,0x8C], 
+		dbrown	=> [0xA5,0x2A,0x2A],
     );
 
-    sub colour_list
-    {
+    sub colour_list 
+	{
         my $n = ( $_[0] ) ? $_[0] : keys %RGB;
-        return (keys %RGB)[0 .. $n-1];
+		return (keys %RGB)[0 .. $n-1]; 
     }
 
-    sub sorted_colour_list
-    {
+    sub sorted_colour_list 
+	{
         my $n = $_[0] ? $_[0] : keys %RGB;
         return (sort by_luminance keys %RGB)[0 .. $n-1];
 #        return (sort by_hue keys %rgb)[0..$n-1];
 
-        sub by_luminance
-        {
-            _luminance(@{$RGB{$b}}) <=> _luminance(@{$RGB{$a}});
+        sub by_luminance 
+        { 
+            _luminance(@{$RGB{$b}}) <=> _luminance(@{$RGB{$a}}); 
         }
-        sub by_hue
-        {
-            _hue(@{$RGB{$b}}) <=> _hue(@{$RGB{$a}});
+        sub by_hue 
+        { 
+            _hue(@{$RGB{$b}}) <=> _hue(@{$RGB{$a}}); 
         }
 
     }
 
-    # return the luminance of the colour (RGB)
-    sub _luminance
-    {
-        (0.212671 * $_[0] + 0.715160 * $_[1] + 0.072169 * $_[2])/0xFF;
-    }
+	# return the luminance of the colour (RGB)
+    sub _luminance 
+	{ 
+		(0.212671 * $_[0] + 0.715160 * $_[1] + 0.072169 * $_[2])/0xFF; 
+	}
 
-    # return the hue of the colour (RGB)
-    sub _hue
-    {
-        ($_[0] + $_[1] + $_[2])/(3 * 0xFF);
-    }
+	# return the hue of the colour (RGB)
+    sub _hue 
+	{ 
+		($_[0] + $_[1] + $_[2])/(3 * 0xFF); 
+	}
 
 my %WarnedColours = ();
 
-    # return the RGB values of the colour name
-    sub _rgb
-    {
-        my $clr = shift;
-        my $rgb_ref;
-        $rgb_ref = $RGB{$clr} or do {
-            $rgb_ref = $RGB{'black'};
-            unless ($WarnedColours{$clr})
-            {
-                $WarnedColours{$clr} = 1;
-                warn "Colour $clr is not defined, reverting to black";
-            }
-        };
-        @{$rgb_ref};
-    }
+	# return the RGB values of the colour name
+    sub _rgb 
+	{ 
+		my $clr = shift;
+		my $rgb_ref;
+		$rgb_ref = $RGB{$clr} or do {
+			$rgb_ref = $RGB{'black'};
+			unless ($WarnedColours{$clr})
+			{
+				$WarnedColours{$clr} = 1;
+				warn "Colour $clr is not defined, reverting to black"; 
+			}
+		};
+		@{$rgb_ref};
+	}
 
-    sub version
-    {
+    sub version 
+	{
         return $PNGgraph::colour::prog_version;
     }
 
-    sub dump_colours
-    {
-        my $max = $_[0] ? $_[0] : keys %RGB;
-        my $n = 0;
+	sub dump_colours
+	{
+		my $max = $_[0] ? $_[0] : keys %RGB;
+		my $n = 0;
 
-        my $clr;
-        foreach $clr (sorted_colour_list($max))
-        {
-            last if $n > $max;
-            print "colour: $clr, " .
-                "${$RGB{$clr}}[0], ${$RGB{$clr}}[1], ${$RGB{$clr}}[2]\n"
-        }
-    }
+		my $clr;
+		foreach $clr (sorted_colour_list($max))
+		{
+			last if $n > $max;
+			print "colour: $clr, " . 
+				"${$RGB{$clr}}[0], ${$RGB{$clr}}[1], ${$RGB{$clr}}[2]\n"
+		}
+	}
 
-    #
-    # Read a rgb.txt file (X11)
-    #
-    # Expected format of the file:
-    #
-    # R G B colour name
-    #
-    # Fields can be separated by any number of whitespace
-    # Lines starting with an exclamation mark (!) are comment and
-    # will be ignored.
-    #
-    # returns number of colours read
+	#
+	# Read a rgb.txt file (X11)
+	#
+	# Expected format of the file:
+	#
+	# R G B colour name
+	#
+	# Fields can be separated by any number of whitespace
+	# Lines starting with an exclamation mark (!) are comment and 
+	# will be ignored.
+	#
+	# returns number of colours read
 
-    sub read_rgb($) # (filename)
-    {
-        my $fn = shift;
-        my $n = 0;
-        my $line;
+	sub read_rgb($) # (filename)
+	{
+		my $fn = shift;
+		my $n = 0;
+		my $line;
 
-        open(RGB, $fn) or return 0;
+		open(RGB, $fn) or return 0;
 
-        while (defined($line = <RGB>))
-        {
-            next if ($line =~ /\s*!/);
-            chomp($line);
+		while (defined($line = <RGB>))
+		{
+			next if ($line =~ /\s*!/);
+			chomp($line);
 
-            # remove leading white space
-            $line =~ s/^\s+//;
+			# remove leading white space
+			$line =~ s/^\s+//;
 
-            # get the colours
-            my ($r, $g, $b, $name) = split(/\s+/, $line, 4);
+			# get the colours
+			my ($r, $g, $b, $name) = split(/\s+/, $line, 4);
+			
+			# Ignore bad lines
+			next unless (defined $name);
 
-            # Ignore bad lines
-            next unless (defined $name);
+			$RGB{$name} = [$r, $g, $b];
+			$n++;
+		}
 
-            $RGB{$name} = [$r, $g, $b];
-            $n++;
-        }
+		close(RGB);
 
-        close(RGB);
-
-        return $n;
-    }
-
+		return $n;
+	}
+ 
     $PNGgraph::colour::prog_name;
 
 } # End of package Colour
@@ -221,7 +222,7 @@ Returns a list of I<number of colours> colour names known to the package.
 
 =item Colour::sorted_colour_list( I<number of colours> )
 
-Returns a list of I<number of colours> colour names known to the package,
+Returns a list of I<number of colours> colour names known to the package, 
 sorted by luminance or hue.
 B<NB.> Right now it always sorts by luminance. Will add an option in a later
 stage to decide sorting method at run time.
@@ -251,7 +252,7 @@ Doing something like:
 
 Will allow you to use any colours defined in rgb.txt in your graph.
 
-=back
+=back 
 
 =head1 PREDEFINED COLOUR NAMES
 
