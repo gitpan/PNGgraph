@@ -1,183 +1,182 @@
 #==========================================================================
-#			   Copyright (c) 1995-1998 Martien Verbruggen
+#              Copyright (c) 1999 Dmitry Ovsyanko
 #--------------------------------------------------------------------------
 #
-#	Name:
-#		PNGgraph::lines.pm
+#   Name:
+#       PNGgraph::lines.pm
 #
-# $Id: lines.pm,v 2.5 1998/08/25 23:28:41 mgjv Exp mgjv $
 #
 #==========================================================================
 
 package PNGgraph::lines;
 
 use strict qw(vars refs subs);
- 
+
 use GD;
 use PNGgraph::axestype;
 
 @PNGgraph::lines::ISA = qw( PNGgraph::axestype );
 
 my %Defaults = (
-	
-	# The width of the line to use in the lines and linespoints graphs
-	# in pixels
- 
-	line_width		=> 1,
 
-	# Set the scale of the line types
+    # The width of the line to use in the lines and linespoints graphs
+    # in pixels
 
-	line_type_scale	=> 8,
+    line_width      => 1,
 
-	# Which line typess to use
+    # Set the scale of the line types
 
-	line_types		=> [1],
+    line_type_scale => 8,
+
+    # Which line typess to use
+
+    line_types      => [1],
 );
 
 {
-	sub initialise()
-	{
-		my $self = shift;
+    sub initialise()
+    {
+        my $self = shift;
 
-		$self->SUPER::initialise();
+        $self->SUPER::initialise();
 
-		my $key;
-		foreach $key (keys %Defaults)
-		{
-			$self->set( $key => $Defaults{$key} );
-		}
-	}
+        my $key;
+        foreach $key (keys %Defaults)
+        {
+            $self->set( $key => $Defaults{$key} );
+        }
+    }
 
-	# PRIVATE
+    # PRIVATE
 
-	sub draw_data_set($$$) # GD::Image, \@data
-	{
-		my $s = shift;
-		my $g = shift;
-		my $d = shift;
-		my $ds = shift;
+    sub draw_data_set($$$) # GD::Image, \@data
+    {
+        my $s = shift;
+        my $g = shift;
+        my $d = shift;
+        my $ds = shift;
 
-		my $dsci = $s->set_clr( $g, $s->pick_data_clr($ds) );
-		my $type = $s->pick_line_type($ds);
-		my ($xb, $yb) = (defined $d->[0]) ?
-			$s->val_to_pixel( 1, $d->[0], $ds) :
-			(undef, undef);
+        my $dsci = $s->set_clr( $g, $s->pick_data_clr($ds) );
+        my $type = $s->pick_line_type($ds);
+        my ($xb, $yb) = (defined $d->[0]) ?
+            $s->val_to_pixel( 1, $d->[0], $ds) :
+            (undef, undef);
 
 
-		my $i;
-		for $i (1 .. $s->{numpoints}) 
-		{
-			next unless (defined $d->[$i]);
+        my $i;
+        for $i (1 .. $s->{numpoints})
+        {
+            next unless (defined $d->[$i]);
 
-			my ($xe, $ye) = $s->val_to_pixel($i+1, $d->[$i], $ds);
+            my ($xe, $ye) = $s->val_to_pixel($i+1, $d->[$i], $ds);
 
-			$s->draw_line( $g, $xb, $yb, $xe, $ye, $type, $dsci ) 
-				if defined $xb;
-			($xb, $yb) = ($xe, $ye);
-	   }
-	}
+            $s->draw_line( $g, $xb, $yb, $xe, $ye, $type, $dsci )
+                if defined $xb;
+            ($xb, $yb) = ($xe, $ye);
+       }
+    }
 
-	sub pick_line_type($)
-	{
-		my $s = shift;
-		my $num = shift;
+    sub pick_line_type($)
+    {
+        my $s = shift;
+        my $num = shift;
 
-		if ( exists $s->{line_types} )
-		{
-			return $s->{line_types}[ $num % (1 + $#{$s->{line_types}}) - 1 ];
-		}
+        if ( exists $s->{line_types} )
+        {
+            return $s->{line_types}[ $num % (1 + $#{$s->{line_types}}) - 1 ];
+        }
 
-		return $num % 4 ? $num % 4 : 4;
-	}
+        return $num % 4 ? $num % 4 : 4;
+    }
 
-	sub draw_line($$$$$$) # ($xs, $ys, $xe, $ye, $type, $colour_index)
-	{
-		my $s = shift;
-		my $g = shift;
-		my ($xs, $ys, $xe, $ye, $type, $clr) = @_;
+    sub draw_line($$$$$$) # ($xs, $ys, $xe, $ye, $type, $colour_index)
+    {
+        my $s = shift;
+        my $g = shift;
+        my ($xs, $ys, $xe, $ye, $type, $clr) = @_;
 
-		my $lw = $s->{line_width};
-		my $lts = $s->{line_type_scale};
+        my $lw = $s->{line_width};
+        my $lts = $s->{line_type_scale};
 
-		my $style = gdStyled;
-		my @pattern = ();
+        my $style = gdStyled;
+        my @pattern = ();
 
-		LINE: {
+        LINE: {
 
-			($type == 2) && do {
-				# dashed
+            ($type == 2) && do {
+                # dashed
 
-				for (1 .. $lts) { push(@pattern, $clr) }
-				for (1 .. $lts) { push(@pattern, gdTransparent) }
+                for (1 .. $lts) { push(@pattern, $clr) }
+                for (1 .. $lts) { push(@pattern, gdTransparent) }
 
-				$g->setStyle(@pattern);
+                $g->setStyle(@pattern);
 
-				last LINE;
-			};
+                last LINE;
+            };
 
-			($type == 3) && do {
-				# dotted,
+            ($type == 3) && do {
+                # dotted,
 
-				for (1 .. 2) { push(@pattern, $clr) }
-				for (1 .. 2) { push(@pattern, gdTransparent) }
+                for (1 .. 2) { push(@pattern, $clr) }
+                for (1 .. 2) { push(@pattern, gdTransparent) }
 
-				$g->setStyle(@pattern);
+                $g->setStyle(@pattern);
 
-				last LINE;
-			};
+                last LINE;
+            };
 
-			($type == 4) && do {
-				# dashed and dotted
+            ($type == 4) && do {
+                # dashed and dotted
 
-				for (1 .. $lts) { push(@pattern, $clr) }
-				for (1 .. 2) 	{ push(@pattern, gdTransparent) }
-				for (1 .. 2) 	{ push(@pattern, $clr) }
-				for (1 .. 2) 	{ push(@pattern, gdTransparent) }
+                for (1 .. $lts) { push(@pattern, $clr) }
+                for (1 .. 2)    { push(@pattern, gdTransparent) }
+                for (1 .. 2)    { push(@pattern, $clr) }
+                for (1 .. 2)    { push(@pattern, gdTransparent) }
 
-				$g->setStyle(@pattern);
+                $g->setStyle(@pattern);
 
-				last LINE;
-			};
+                last LINE;
+            };
 
-			# default: solid
-			$style = $clr;
-		}
+            # default: solid
+            $style = $clr;
+        }
 
-		# Tried the line_width thing with setBrush, ugly results
-		# TODO: This loop probably should be around the datasets 
-		# for nicer results
-		my $i;
-		for $i (1..$lw)
-		{
-			my $yslw = $ys + int($lw/2) - $i;
-			my $yelw = $ye + int($lw/2) - $i;
+        # Tried the line_width thing with setBrush, ugly results
+        # TODO: This loop probably should be around the datasets
+        # for nicer results
+        my $i;
+        for $i (1..$lw)
+        {
+            my $yslw = $ys + int($lw/2) - $i;
+            my $yelw = $ye + int($lw/2) - $i;
 
-			# Need the setstyle to reset 
-			$g->setStyle(@pattern) if (@pattern);
-			$g->line( $xs, $yslw, $xe, $yelw, $style );
-		}
-	}
+            # Need the setstyle to reset
+            $g->setStyle(@pattern) if (@pattern);
+            $g->line( $xs, $yslw, $xe, $yelw, $style );
+        }
+    }
 
-	sub draw_legend_marker($$$$) # (GD::Image, data_set_number, x, y)
-	{
-		my $s = shift;
-		my $g = shift;
-		my $n = shift;
-		my $x = shift;
-		my $y = shift;
+    sub draw_legend_marker($$$$) # (GD::Image, data_set_number, x, y)
+    {
+        my $s = shift;
+        my $g = shift;
+        my $n = shift;
+        my $x = shift;
+        my $y = shift;
 
-		my $ci = $s->set_clr( $g, $s->pick_data_clr($n) );
-		my $type = $s->pick_line_type($n);
+        my $ci = $s->set_clr( $g, $s->pick_data_clr($n) );
+        my $type = $s->pick_line_type($n);
 
-		$y += int($s->{lg_el_height}/2);
+        $y += int($s->{lg_el_height}/2);
 
-		$s->draw_line(
-			$g,
-			$x, $y, 
-			$x + $s->{legend_marker_width}, $y,
-			$type, $ci
-		);
-	}
+        $s->draw_line(
+            $g,
+            $x, $y,
+            $x + $s->{legend_marker_width}, $y,
+            $type, $ci
+        );
+    }
 
 } # End of package PNGgraph::lines
 

@@ -1,3 +1,14 @@
+
+UNRESOLVED BUGS
+
++ overlapping labels in pie charts;
+! Color on front of 3D pies wrong with some data sets (NOT yet fixed :-( )
++ incorrect border filling in pie charts.
+
+#############################################################################
+
+ FROM GIFGraph 1.10:
+
 UNRESOLVED BUGS
 
 + two_axes doesn't work correctly with negative numbers and zero_axis
@@ -19,7 +30,7 @@ NOT REALLY BUGS
   might be a point for discussion.
 - y_min_value doesn't automatically get adapted for bars and area if 0
   is not included in the range, but only if user sets it. If left to
-  figure it out itself, PNGgraph does it right.
+  figure it out itself, GIFgraph does it right.
 
 FIXED IN 1.10
 
@@ -40,9 +51,9 @@ FIXED IN 1.03
 
 FIXED IN 1.02
 
-! PNGgraph::Colour::read_rgb() falls over on comment lines.
+! GIFgraph::Colour::read_rgb() falls over on comment lines.
 	(reported: adamm@genomecorp.com)
-! PNGgraph::Colour::read_rgb() contains inline my-declaration of $line, 
+! GIFgraph::Colour::read_rgb() contains inline my-declaration of $line, 
   breaks perl5.003 
 	(reported: Pat Becker <pmb@iss.net>)
 ! if a colour name doesn't exist, program falls over with a cryptic message
@@ -62,9 +73,9 @@ FIXED IN 1.01
 
 FIXED IN 1.00
 
-! PNGgraph::colour::sorted_colour_list() syntax error
-! PNGgraph::colour pod documentation fixed
-! placement of title is centered on png, not on graph.
+! GIFgraph::colour::sorted_colour_list() syntax error
+! GIFgraph::colour pod documentation fixed
+! placement of title is centered on gif, not on graph.
 ! linespoints graph type initialises two GD::Image objects
 ! 'make test' fails on all tests on win32. binmode() needed.
 

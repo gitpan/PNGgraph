@@ -1,25 +1,23 @@
 #==========================================================================
-#              Copyright (c) 1995-1998 Martien Verbruggen
-#              Copyright (c) 1999 Steve Bonds
+#              Copyright (c) 1999 Dmitry Ovsyanko
 #--------------------------------------------------------------------------
 #
-#	Name:
-#		PNGgraph.pm
+#   Name:
+#       PNGgraph.pm
 #
-#	Description:
+#   Description:
 #       Module to create graphs from a data set, outputting
-#		PNG format graphics.
+#       PNG format graphics.
 #
-#		Package of a number of graph types:
-#		PNGgraph::bars
-#		PNGgraph::lines
-#		PNGgraph::points
-#		PNGgraph::linespoints
-#		PNGgraph::area
-#		PNGgraph::pie
-#		PNGgraph::mixed
+#       Package of a number of graph types:
+#       PNGgraph::bars
+#       PNGgraph::lines
+#       PNGgraph::points
+#       PNGgraph::linespoints
+#       PNGgraph::area
+#       PNGgraph::pie
+#       PNGgraph::mixed
 #
-# $Id: PNGgraph.pm,v 1.1 1999/08/31 23:11:49 sbonds Exp $
 #
 #==========================================================================
 
@@ -41,9 +39,9 @@ use GD;
 package PNGgraph;
 
 $PNGgraph::prog_name    = 'PNGgraph.pm';
-$PNGgraph::prog_rcs_rev = q{$Revision: 1.1 $};
-$PNGgraph::prog_version = 
-	($PNGgraph::prog_rcs_rev =~ /\s+(\d*\.\d*)/) ? $1 : "0.0";
+$PNGgraph::prog_rcs_rev = '$Revision: 2.6 $';
+$PNGgraph::prog_version =
+    ($PNGgraph::prog_rcs_rev =~ /\s+(\d*\.\d*)/) ? $1 : "0.0";
 
 $PNGgraph::VERSION = '1.10';
 
@@ -70,67 +68,67 @@ unless ($OS) {
         require Config;
         $OS = $Config::Config{'osname'};
     }
-	if ($OS=~/Win/i) {
-		$OS = 'WINDOWS';
-	} elsif ($OS=~/vms/i) {
-		$OS = 'VMS';
-	} elsif ($OS=~/Mac/i) {
-		$OS = 'MACINTOSH';
-	} elsif ($OS=~/os2/i) {
-		$OS = 'OS2';
-	} else {
-		$OS = 'UNIX';
-	}
+    if ($OS=~/Win/i) {
+        $OS = 'WINDOWS';
+    } elsif ($OS=~/vms/i) {
+        $OS = 'VMS';
+    } elsif ($OS=~/Mac/i) {
+        $OS = 'MACINTOSH';
+    } elsif ($OS=~/os2/i) {
+        $OS = 'OS2';
+    } else {
+        $OS = 'UNIX';
+    }
 }
 
 $PNGgraph::needs_binmode = $OS=~/^(WINDOWS|VMS|OS2)/;
 
-my %PNGsize = ( 
-	'x' => 400, 
-	'y' => 300 
+my %PNGsize = (
+    'x' => 400,
+    'y' => 300
 );
 
 my %Defaults = (
 
-	# Set the top, bottom, left and right margin for the PNG. These 
-	# margins will be left empty.
+    # Set the top, bottom, left and right margin for the PNG. These
+    # margins will be left empty.
 
-	t_margin      => 0,
-	b_margin      => 0,
-	l_margin      => 0,
-	r_margin      => 0,
+    t_margin      => 0,
+    b_margin      => 0,
+    l_margin      => 0,
+    r_margin      => 0,
 
-	# Set the factor with which to resize the logo in the PNG (need to
-	# automatically compute something nice for this, really), set the 
-	# default logo file name, and set the logo position (UR, BR, UL, BL)
+    # Set the factor with which to resize the logo in the PNG (need to
+    # automatically compute something nice for this, really), set the
+    # default logo file name, and set the logo position (UR, BR, UL, BL)
 
-	logo_resize   => 1.0,
-	logo          => undef,
-	logo_position => 'LR',
+    logo_resize   => 1.0,
+    logo          => undef,
+    logo_position => 'LR',
 
-	# Write a transparent PNG?
+    # Write a transparent PNG?
 
-	transparent   => 1,
+    transparent   => 1,
 
-	# Write an interlaced PNG?
+    # Write an interlaced PNG?
 
-	interlaced    => 1,
+    interlaced    => 1,
 
-	# Set the background colour, the default foreground colour (used 
-	# for axes etc), the textcolour, the colour for labels, the colour 
-	# for numbers on the axes, the colour for accents (extra lines, tick
-	# marks, etc..)
+    # Set the background colour, the default foreground colour (used
+    # for axes etc), the textcolour, the colour for labels, the colour
+    # for numbers on the axes, the colour for accents (extra lines, tick
+    # marks, etc..)
 
-	bgclr         => 'white',
-	fgclr         => 'dblue',
-	textclr       => 'dblue',
-	labelclr      => 'dblue',
-	axislabelclr  => 'dblue',
-	accentclr     => 'gray',
+    bgclr         => 'white',
+    fgclr         => 'dblue',
+    textclr       => 'dblue',
+    labelclr      => 'dblue',
+    axislabelclr  => 'dblue',
+    accentclr     => 'gray',
 
-	# number of pixels to use as text spacing
+    # number of pixels to use as text spacing
 
-	text_space    => 8,
+    text_space    => 8,
 );
 
 {
@@ -138,22 +136,22 @@ my %Defaults = (
     # PUBLIC methods, documented in pod.
     #
     sub new  # ( width, height ) optional;
-	{
+    {
         my $type = shift;
         my $self = {};
         bless $self, $type;
 
-        if (@_) 
-		{
+        if (@_)
+        {
             # If there are any parameters, they should be the size
             $self->{pngx} = shift;
 
             # If there's an x size, there should also be a y size.
             die "Usage: PNGgraph::<type>::new( [x_size, y_size] )\n" unless @_;
             $self->{pngy} = shift;
-        } 
-		else 
-		{
+        }
+        else
+        {
             # There were obviously no parameters, so use defaults
             $self->{pngx} = $PNGsize{'x'};
             $self->{pngy} = $PNGsize{'y'};
@@ -167,35 +165,35 @@ my %Defaults = (
     }
 
     sub set
-	{
+    {
         my $s = shift;
         my %args = @_;
 
-        foreach (keys %args) 
-		{ 
-			$s->{$_} = $args{$_}; 
-		}
+        foreach (keys %args)
+        {
+            $s->{$_} = $args{$_};
+        }
     }
 
-    # These should probably not be used, or be rewritten to 
-    # accept some keywords. Problem is that GD is very limited 
-    # on fonts, and this routine just accepts GD font names. 
+    # These should probably not be used, or be rewritten to
+    # accept some keywords. Problem is that GD is very limited
+    # on fonts, and this routine just accepts GD font names.
     # But.. it's not nice to require the user to include GD.pm
     # just because she might want to change the font.
 
     sub set_title_font # (fontname)
-	{
+    {
         my $self = shift;
 
         $self->{tf} = shift;
-        $self->set( 
-			tfw => $self->{tf}->width,
-			tfh => $self->{tf}->height,
-		);
+        $self->set(
+            tfw => $self->{tf}->width,
+            tfh => $self->{tf}->height,
+        );
     }
 
     sub set_text_clr # (colour name)
-	{
+    {
         my $s = shift;
         my $c = shift;
 
@@ -206,59 +204,59 @@ my %Defaults = (
         );
     }
 
-	sub plot # (\@data)
-	{
-		# ABSTRACT
-		my $s = shift;
-		$s->die_abstract( "sub plot missing," );
-	}
+    sub plot # (\@data)
+    {
+        # ABSTRACT
+        my $s = shift;
+        $s->die_abstract( "sub plot missing," );
+    }
 
     sub plot_to_png # ("file.png", \@data)
-	{
+    {
         my $s = shift;
         my $file = shift;
         my $data = shift;
 
-        open (PNGPLOT,">$file") || do 
-		{ 
-			warn "Cannot open $file for writing: $!";
-			return 0; 
-		};
-		binmode PNGPLOT if ($PNGgraph::needs_binmode);
+        open (PNGPLOT,">$file") || do
+        {
+            warn "Cannot open $file for writing: $!";
+            return 0;
+        };
+        binmode PNGPLOT if ($PNGgraph::needs_binmode);
         print PNGPLOT $s->plot( $data );
         close(PNGPLOT);
     }
 
     # Routine to read GNU style data files
-	# NOT USEABLE
+    # NOT USEABLE
 
-    sub ReadFile 
-	{
-        my $file = shift; 
-		my @cols = @_; 
-		my (@out, $i, $j);
+    sub ReadFile
+    {
+        my $file = shift;
+        my @cols = @_;
+        my (@out, $i, $j);
 
         @cols = 1 if ( $#cols < 1 );
 
-        open (DATA, $file) || do { 
-			warn "Cannot open file: $file"; 
-			return []; 
-		};
+        open (DATA, $file) || do {
+            warn "Cannot open file: $file";
+            return [];
+        };
 
-        $i=0; 
-        while (defined(<DATA>)) 
-		{ 
+        $i=0;
+        while (defined(<DATA>))
+        {
             s/^\s+|\s+$//;
             next if ( /^#/ || /^!/ || /^[ \t]*$/ );
             @_ = split(/[ \t]+/);
             $out[0][$i] = $_[0];
             $j=1;
-            foreach (@cols) 
-			{
-                if ( $_ > $#_ ) { 
-					warn "Data column $_ not present"; 
-					return []; 
-				}
+            foreach (@cols)
+            {
+                if ( $_ > $#_ ) {
+                    warn "Data column $_ not present";
+                    return [];
+                }
                 $out[$j][$i] = $_[$_]; $j++;
             }
             $i++;
@@ -273,35 +271,35 @@ my %Defaults = (
     # PRIVATE methods
     #
 
-    # Set defaults that apply to all graph/chart types. 
-    # This is called by the default initialise methods 
+    # Set defaults that apply to all graph/chart types.
+    # This is called by the default initialise methods
     # from the objects further down the tree.
 
     sub initialise()
-	{
+    {
         my $self = shift;
 
-		foreach (keys %Defaults) 
-		{
-			$self->set( $_ => $Defaults{$_} );
-		}
+        foreach (keys %Defaults)
+        {
+            $self->set( $_ => $Defaults{$_} );
+        }
 
         $self->set_title_font(GD::gdLargeFont);
 
-		$self->open_graph();
+        $self->open_graph();
     }
 
 
     # Check the integrity of the submitted data
     #
-    # Checks are done to assure that every input array 
+    # Checks are done to assure that every input array
     # has the same number of data points, it sets the variables
     # that store the number of sets and the number of points
     # per set, and kills the process if there are no datapoints
     # in the sets, or if there are no data sets.
 
     sub check_data($) # \@data
-	{
+    {
         my $self = shift;
         my $data = shift;
 
@@ -310,37 +308,37 @@ my %Defaults = (
 
         ( $self->{numsets} < 1 || $self->{numpoints} < 0 ) && die "No Data";
 
-		my $i;
-        for $i ( 1..$self->{numsets} ) 
-		{
-			die "Data array $i: length misfit"
-				unless ( $self->{numpoints} == $#{@$data[$i]} );
+        my $i;
+        for $i ( 1..$self->{numsets} )
+        {
+            die "Data array $i: length misfit"
+                unless ( $self->{numpoints} == $#{@$data[$i]} );
         }
     }
 
     # Open the graph output canvas by creating a new GD object.
 
     sub open_graph()
-	{
+    {
         my $self = shift;
-		if ( !exists $self->{graph} )
-		{
-			my $graph = new GD::Image($self->{pngx}, $self->{pngy});
-			$self->{graph} = $graph;
-			return $graph;
-		}
-		else
-		{
-			return $self->{graph};
-		}
+        if ( !exists $self->{graph} )
+        {
+            my $graph = new GD::Image($self->{pngx}, $self->{pngy});
+            $self->{graph} = $graph;
+            return $graph;
+        }
+        else
+        {
+            return $self->{graph};
+        }
     }
 
     # Initialise the graph output canvas, setting colours (and getting back
-    # index numbers for them) setting the graph to transparent, and 
+    # index numbers for them) setting the graph to transparent, and
     # interlaced, putting a logo (if defined) on there.
 
     sub init_graph($) # GD::Image
-	{
+    {
         my $self = shift;
         my $graph = shift;
 
@@ -358,27 +356,27 @@ my %Defaults = (
     # read in the logo, and paste it on the graph canvas
 
     sub put_logo($) # GD::Image
-	{
+    {
         my $self = shift;
         my $graph = shift;
 
-		return unless(defined($self->{logo}));
+        return unless(defined($self->{logo}));
 
         my ($x, $y, $glogo);
         my $r = $self->{logo_resize};
 
-        my $r_margin = (defined $self->{r_margin_abs}) ? 
+        my $r_margin = (defined $self->{r_margin_abs}) ?
             $self->{r_margin_abs} : $self->{r_margin};
-        my $b_margin = (defined $self->{b_margin_abs}) ? 
+        my $b_margin = (defined $self->{b_margin_abs}) ?
             $self->{b_margin_abs} : $self->{b_margin};
 
         open(PNGLOGO, $self->{logo}) || return;
-		binmode(PNGLOGO) if ($PNGgraph::needs_binmode);
-        unless ( $glogo = newFromPng GD::Image(\*PNGLOGO) ) 
-		{
-            warn "Problems reading $self->{logo}"; 
-			close(PNGLOGO); 
-			return;
+        binmode(PNGLOGO) if ($PNGgraph::needs_binmode);
+        unless ( $glogo = newFromPng GD::Image(\*PNGLOGO) )
+        {
+            warn "Problems reading $self->{logo}";
+            close(PNGLOGO);
+            return;
         }
         close(PNGLOGO);
 
@@ -408,62 +406,62 @@ my %Defaults = (
         undef $glogo;
     }
 
-    # Set a colour to work with on the canvas, by rgb value. 
+    # Set a colour to work with on the canvas, by rgb value.
     # Return the colour index in the palette
 
     sub set_clr($$$$) # GD::Image, r, g, b
-	{
-        my $s = shift; 
-		my $g = shift; 
-		my $i;
+    {
+        my $s = shift;
+        my $g = shift;
+        my $i;
 
         # Check if this colour already exists on the canvas
-        if ( ( $i = $g->colorExact( @_ ) ) < 0 ) 
-		{
+        if ( ( $i = $g->colorExact( @_ ) ) < 0 )
+        {
             # if not, allocate a new one, and return it's index
             return $g->colorAllocate( @_ );
-        } 
+        }
         return $i;
     }
-    
+
     # Set a colour, disregarding wether or not it already exists.
 
     sub set_clr_uniq($$$$) # GD::Image, r, g, b
-	{
-        my $s=shift; 
-        my $g=shift; 
+    {
+        my $s=shift;
+        my $g=shift;
 
-        $g->colorAllocate( @_ ); 
+        $g->colorAllocate( @_ );
     }
 
     # Return an array of rgb values for a colour number
 
     sub pick_data_clr($) # number
-	{
+    {
         my $s = shift;
 
         return _rgb( $s->{dclrs}[ $_[0] % (1+$#{$s->{dclrs}}) -1 ] );
     }
 
     # DEBUGGING
-	# data_dump obsolete now, use Data::Dumper
+    # data_dump obsolete now, use Data::Dumper
 
-	sub die_abstract()
-	{
-		my $s = shift;
-		my $msg = shift;
-		# ABSTRACT
-		die
-			"Subclass (" .
-			ref($s) . 
-			") not implemented correctly: " .
-			(defined($msg) ? $msg : "unknown error");
-	}
+    sub die_abstract()
+    {
+        my $s = shift;
+        my $msg = shift;
+        # ABSTRACT
+        die
+            "Subclass (" .
+            ref($s) .
+            ") not implemented correctly: " .
+            (defined($msg) ? $msg : "unknown error");
+    }
 
     # Return the png contents
 
-    sub pngdata() 
-	{
+    sub pngdata()
+    {
         my $s = shift;
 
         return $s->{graph}->png;
@@ -485,7 +483,7 @@ use PNGgraph::moduleName;
 
 =head1 DESCRIPTION
 
-B<PNGgraph> is a I<perl5> module to create and display PNG output 
+B<PNGgraph> is a I<perl5> module to create and display PNG output
 for a graph.
 The following classes for graphs with axes are defined:
 
@@ -540,7 +538,7 @@ Fill an array of arrays with the x values and the values of the data
 sets.  Make sure that every array is the same size, otherwise
 I<PNGgraph> will complain and refuse to compile the graph.
 
-    @data = ( 
+    @data = (
         ["1st","2nd","3rd","4th","5th","6th","7th", "8th", "9th"],
         [    1,    2,    5,    6,    3,  1.5,    1,     3,     4]
         [ sort { $a <=> $b } (1, 2, 5, 6, 3, 1.5, 1, 3, 4) ]
@@ -555,15 +553,15 @@ linespoints> or I<pie>).
 
     $my_graph = new PNGgraph::chart( );
 
-Set the graph options. 
+Set the graph options.
 
-    $my_graph->set( 
+    $my_graph->set(
         x_label           => 'X Label',
         y_label           => 'Y label',
         title             => 'Some simple graph',
         y_max_value       => 8,
         y_tick_number     => 8,
-        y_label_skip      => 2 
+        y_label_skip      => 2
     );
 
 Output the graph
@@ -578,7 +576,7 @@ Output the graph
 
 =item new PNGgraph::chart([width,height])
 
-Create a new object $graph with optional width and heigth. 
+Create a new object $graph with optional width and heigth.
 Default width = 400, default height = 300. I<chart> is either
 I<bars, lines, points, linespoints, area> or I<pie>.
 
@@ -591,7 +589,7 @@ I<textclr>, I<labelclr> and I<axislabelclr>.
 =item set_title_font( I<fontname> )
 
 Set the font that will be used for the title of the chart.  Possible
-choices are defined in L<GD>. 
+choices are defined in L<GD>.
 B<NB.> If you want to use this function, you'll
 need to use L<GD>. At some point I'll rewrite this, so you can give this a
 number from 1 to 4, or a string like 'large' or 'small'. On the other
@@ -619,8 +617,8 @@ Set chart options. See OPTIONS section.
 
 =item set_value_font( I<fontname> )
 
-Set the font that will be used for the label of the pie or the 
-values on the pie.  Possible choices are defined in L<GD>. 
+Set the font that will be used for the label of the pie or the
+values on the pie.  Possible choices are defined in L<GD>.
 See also I<set_title_font>.
 
 =back
@@ -666,14 +664,14 @@ Default: 0 for all.
 
 =item logo
 
-Name of a logo file. This should be a PNG file. 
+Name of a logo file. This should be a PNG file.
 Default: no logo.
 
 =item logo_resize, logo_position
 
 Factor to resize the logo by, and the position on the canvas of the
 logo. Possible values for logo_position are 'LL', 'LR', 'UL', and
-'UR'.  (lower and upper left and right). 
+'UR'.  (lower and upper left and right).
 Default: 'LR'.
 
 =item transparent
@@ -699,13 +697,13 @@ L<PNGgraph::colour> (C<S<perldoc PNGgraph::colour>> for the names available).
     $graph->set( dclrs => [ qw(green pink blue cyan) ] );
 
 The first (fifth, ninth) data set will be green, the next pink, etc.
-Default: [ qw(lred lgreen lblue lyellow lpurple cyan lorange) ] 
+Default: [ qw(lred lgreen lblue lyellow lpurple cyan lorange) ]
 
 =back
 
 =head2 Options for graphs with axes.
 
-options for I<bars>, I<lines>, I<points>, I<linespoints> and 
+options for I<bars>, I<lines>, I<points>, I<linespoints> and
 I<area> charts.
 
 =over 4
@@ -783,14 +781,14 @@ Default: 0.
 
 Controls the position of the X axis label (title). The value for this
 should be between 0 and 1, where 0 means aligned to the left, 1 means
-aligned to the right, and 1/2 means centered. 
+aligned to the right, and 1/2 means centered.
 Default: 3/4
 
 =item y_label_position
 
 Controls the position of both Y axis labels (titles). The value for
 this should be between 0 and 1, where 0 means aligned to the bottom, 1
-means aligned to the top, and 1/2 means centered. 
+means aligned to the top, and 1/2 means centered.
 Default: 1/2
 
 =item x_labels_vertical
@@ -1082,7 +1080,7 @@ support two spellings for the same word ('colour' and 'color')
 Wherever a colour is required, a colour name should be used from the
 package L<PNGgraph::colour>. C<S<perldoc PNGgraph::colour>> should give
 you the documentation for that module, containing all valid colour
-names. I will probably change this to read the systems rgb.txt file if 
+names. I will probably change this to read the systems rgb.txt file if
 it is available.
 
 Wherever a font name is required, a font from L<GD> should be used.
@@ -1090,24 +1088,16 @@ Wherever a font name is required, a font from L<GD> should be used.
 =head1 AUTHOR
 
 Martien Verbruggen
-ported to GD 1.20+ (PNG) by Steve Bonds
 
-=head2 Contact info 
+=head2 Contact info
 
-for PNGgraph questions:
-email: sbonds@agora.rdrop.com
-
-for GIFgraph questions:
-email: mgjv@comdyn.com.au
+email: do@mobile.ru
 
 =head2 Copyright
 
-Copyright (C) 1995-1998 Martien Verbruggen.
-Copyright (C) 1999 Steve Bonds.
-All rights reserved.  This package is free software; you can redistribute it 
+Copyright (C) 1999 Dmitry Ovsyanko
+All rights reserved.  This package is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.
 
 =cut
 
-# WWW: L<http://www.rdrop.com/~sbonds/>
-# WWW: L<http://www.tcp.chem.tue.nl/~tgtcmv/>
